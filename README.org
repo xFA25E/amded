@@ -1,0 +1,73 @@
+#+TITLE: amded
+
+Interface to music tagging application [[https://github.com/ft/amded][amded]]
+
+This package allows music files to be easily tagged in a convenient widget
+buffer using amded program.
+
+[[scrot.png]]
+
+* Installation
+** Nix
+This repo is a nix flake.  You can just add ~overlays.default~ output to your
+nixpkgs overlays.
+
+#+begin_src nix
+{
+  inputs.amded.url = "github:xFA25E/amded";
+  outputs = { self, amded, nixpkgs }: let
+    pkgs = import nixpkgs {
+      system = "your-system";
+      overlays = [ amded.overlays.default ];
+    };
+  in {
+    # YOUR OUTPUTS
+  };
+}
+#+end_src
+
+** Package manager
+If you've installed it with your package manager, you're done.  ~amded~ is
+autoloaded, so you can call it right away.
+
+** Manual
+Put /amded.el/ in your load-path, and put the following in your init file:
+
+#+BEGIN_SRC elisp
+(require 'amded)
+#+END_SRC
+
+* Usage
+
+Open Dired buffer, put cursor on music files (or mark them) and run ~amded~.  A
+new buffer with widgets should pop-up.
+
+For now, only Dired modes are supported, but amded can be easily extended using
+~amded-files-functions~.  Just provide a function which returns a list of
+absolute file-names and amded will take care of the rest.
+
+** Tips
++ The user is encouraged to customize ~amded-editable-tags~.  Amded can set a
+  lot of tags, but, almost certainly, you don't care about most of them.
+
+*** Bulk editing
+
++ ~amded-set~ sets the same value for a tag in every widget.
+
++ ~amded-numeric-set~ takes a numeric tag (~amded-editable-numeric-tags~) and a
+  number to start from.  It sets the tag value in every widget incrementing it.
+
+*** Amded nix package
+If you are insterested in amded package for nix, you can use [[https://github.com/xFA25E/nix-config][my]] flake.  It
+provides amded package in ~packages~ output.  [[https://github.com/xFA25E/nix-config/blob/7fca25cd4b2146515eae95f7952d578e910cab7c/flake.nix#L142-L150][Here]] is the definition.
+
+* Credits
+This package would not have been possible without the excellent [[https://github.com/ft/amded][amded]]
+program and, of course, [[https://taglib.org][taglib]].
+
+* Development
+If you are insterested in the support of some mode, feel free to open an issue
+or send a PR.
+
+* License
+GPLv3
