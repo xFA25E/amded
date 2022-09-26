@@ -42,9 +42,9 @@ Put /amded.el/ in your load-path, and put the following in your init file:
 Open Dired buffer, put cursor on music files (or mark them) and run ~amded~.  A
 new buffer with widgets should pop-up.
 
-For now, only Dired modes are supported, but amded can be easily extended using
-~amded-files-functions~.  Just provide a function which returns a list of
-absolute file-names and amded will take care of the rest.
+For now, only Dired and Mpc modes are supported, but amded can be easily
+extended using ~amded-files-functions~.  Just provide a function which returns a
+list of absolute file-names and amded will take care of the rest.
 
 ** Tips
 + The user is encouraged to customize ~amded-editable-tags~.  Amded can set a

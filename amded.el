@@ -46,9 +46,9 @@
 ;; Open Dired buffer, put cursor on music files (or mark them) and run `amded'.
 ;; A new buffer with widgets should pop-up.
 
-;; For now, only Dired modes are supported, but amded can be easily extended
-;; using `amded-files-functions'.  Just provide a function which returns a list
-;; of absolute file-names and amded will take care of the rest.
+;; For now, only Dired and Mpc modes are supported, but amded can be easily
+;; extended using `amded-files-functions'.  Just provide a function which
+;; returns a list of absolute file-names and amded will take care of the rest.
 
 ;;;; Tips
 
@@ -118,7 +118,8 @@ Run \"`amded-program' -s tags\" to see supported tags."
            (amded--define-widget))))
 
 (defcustom amded-files-functions
-  '((dired-mode . dired-get-marked-files))
+  '((dired-mode . dired-get-marked-files)
+    (mpc-mode . amded-mpc-selected-files))
   "File-name returning functions.
 Has a form of ((MAJOR-MODE . FUNCTION)...).  Each FUNCTION should
 return a list of absolute filenames."
@@ -270,6 +271,13 @@ FILES-TAGS is an alist like the one returned by `amded-read'."
 (defun amded-numeric-tag-p (tag)
   "Check whether TAG is a numeric audio tag."
   (member tag amded-editable-numeric-tags))
+
+(defvar mpc-mpd-music-directory)
+(declare-function mpc-songs-selection "mpc")
+(defun amded-mpc-selected-files ()
+  "Get selected files in mpc."
+  (mapcar (lambda (f) (expand-file-name (car f) mpc-mpd-music-directory))
+          (mpc-songs-selection)))
 
 ;;;;; Private
 
