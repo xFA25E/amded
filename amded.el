@@ -187,9 +187,19 @@ If PREDICATE is omitted or nil, save all."
 (defun amded-set (tag value)
   "Set VALUE to TAG in all widgets in a buffer."
   (interactive
-   (let* ((tag (completing-read "Tag: " amded-editable-tags nil t))
-          (read-function (if (amded-numeric-tag-p tag) #'read-number #'read-string)))
-     (list tag (funcall read-function "Value: "))))
+   (let* ((widget (amded--nearest-field-widget))
+          (defaults (widget-value (widget-get widget :parent)))
+          (default-tag (car defaults))
+          (tag-prompt (format-prompt "Tag" default-tag))
+          (tag (completing-read tag-prompt amded-editable-tags nil t nil nil
+                                default-tag))
+          (default-value (when (string= default-tag tag) (cdr defaults)))
+          (value-prompt (format-prompt "Value" default-value))
+          (read-function (if (not (amded-numeric-tag-p tag))
+                             (lambda ()
+                               (read-string value-prompt nil nil default-value))
+                           (lambda () (read-number "Value: " default-value)))))
+     (list tag (funcall read-function))))
 
   (when (and (amded-numeric-tag-p tag) (not (integerp value)))
     (error "Tag \"%s\" value must be an integer, got %S" tag value))
@@ -303,6 +313,24 @@ Widget definition depends on `amded-editable-tags' and
   "Set tags data associated with BUTTON-WIDGET."
   (let ((files (widget-get button-widget :files)))
     (amded-save (lambda (widget) (member (widget-get widget :file) files)))))
+
+(defun amded--nearest-field-widget ()
+  "Find nearest field widget."
+  (or (widget-field-at (point))
+      (save-excursion
+        (let ((pt (point)))
+          (widget-forward 1)
+          (when (< pt (point))
+            (widget-field-at (point)))))
+      (save-excursion
+        (widget-backward 1)
+        (widget-field-at (point)))
+      (save-excursion
+        (widget-backward 2)
+        (widget-field-at (point)))
+      (save-excursion
+        (widget-backward 3)
+        (widget-field-at (point)))))
 
 ;;;; Footer
 
