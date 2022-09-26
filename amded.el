@@ -4,8 +4,8 @@
 
 ;; Author: Valeriy Litkovskyy <vlr.ltkvsk@protonmail.com>
 ;; URL: https://github.com/xFA25E/amded
-;; Version: 0.0.1
-;; Package-Requires: ((emacs "27.1"))
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: multimedia
 
 ;; This file is not part of GNU Emacs.
