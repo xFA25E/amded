@@ -146,6 +146,7 @@ return a list of absolute filenames."
 (define-derived-mode amded-mode fundamental-mode "Amded"
   "Major mode to edit audio tags data."
   :group 'amded
+  :interactive nil
   (with-silent-modifications (erase-buffer) (remove-overlays)))
 
 ;;;###autoload
@@ -175,7 +176,7 @@ return a list of absolute filenames."
 (defun amded-save (&optional predicate)
   "Save all tags of `amded--widgets' that match PREDICATE.
 If PREDICATE is omitted or nil, save all."
-  (interactive)
+  (interactive nil amded-mode)
   (let ((predicate (or predicate #'always))
         (files-tags nil))
     (seq-doseq (widget amded--widgets)
@@ -199,7 +200,8 @@ If PREDICATE is omitted or nil, save all."
                              (lambda ()
                                (read-string value-prompt nil nil default-value))
                            (lambda () (read-number "Value: " default-value)))))
-     (list tag (funcall read-function))))
+     (list tag (funcall read-function)))
+   amded-mode)
 
   (when (and (amded-numeric-tag-p tag) (not (integerp value)))
     (error "Tag \"%s\" value must be an integer, got %S" tag value))
@@ -216,7 +218,8 @@ If PREDICATE is omitted or nil, save all."
 START should be a number from which to begin counting."
   (interactive
    (let ((tag (completing-read "Tag: " amded-editable-numeric-tags nil t)))
-     (list tag (read-number "Start: "))))
+     (list tag (read-number "Start: ")))
+   amded-mode)
 
   (unless (and (amded-numeric-tag-p tag) (integerp start))
     (error "Tag \"%s\" value must be an integer, got %S" tag start))
