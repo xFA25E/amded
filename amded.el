@@ -77,6 +77,7 @@
 
 (require 'cus-edit)
 (require 'map)
+(require 'subr-x)
 
 ;;;; Customization
 
@@ -124,6 +125,52 @@ Run \"`amded-program' -s tags\" to see supported tags."
 Has a form of ((MAJOR-MODE . FUNCTION)...).  Each FUNCTION should
 return a list of absolute filenames."
   :type '(alist (cons symbol function))
+  :group 'amded)
+
+(defcustom amded-template-regexp
+  (rx-let ((sep (or " - " "/"))
+           (ext (seq "." (+ (not ".")) eos))
+           (text
+            (seq
+             ;; start with not space or slash
+             (not (in " /"))
+             ;; end with any number of
+             (* (or
+                 ;; not space or slash
+                 (not (in " /"))
+                 (seq
+                  ;; or one or more spaces followed by
+                  (+ " ")
+                  (or
+                   ;; not space, slash or dash
+                   (not (in " /-"))
+                   (seq
+                    ;; or a dash followed by
+                    "-"
+                    ;; one or more not space or slash
+                    (+ (not (in " /"))))))))))
+           (tag-num (n) (group-n n (+? num)))
+           (tag-text (n) (group-n n text)))
+    (rx "/home/" (+ (not "/")) "/Music/"
+        (tag-text 1) "/"
+        (opt (tag-text 2) sep)
+        (opt (opt (tag-num 3) " - ")
+             (tag-text 4) sep
+             (opt (tag-num 5) " - "))
+        (tag-text 6) ext))
+  "A regexp used it `amded-set-from-template'.
+It is matched against full file name and various parts are taken
+from explicit groups:
+
+1 - Genre
+2 - Artist
+3 - Year
+4 - Album
+5 - Track Number
+6 - Track Title
+
+See `amded-template-regexp' definition for an example."
+  :type 'regexp
   :group 'amded)
 
 ;;;; Variables
@@ -231,6 +278,38 @@ START should be a number from which to begin counting."
         (seq-let (tag-widget value-widget) (widget-get child :children)
           (when (string= tag (widget-value tag-widget))
             (widget-value-set value-widget (cl-incf start))))))))
+
+(defun amded-set-from-template ()
+  "Set tag values from `amded-template-regexp'."
+  (interactive nil amded-mode)
+  (save-excursion
+    (seq-doseq (widget amded--widgets)
+      (let ((file (widget-get widget :file)))
+        (save-match-data
+          (string-match amded-template-regexp file)
+          (let ((genre (match-string 1 file))
+                (artist (match-string 2 file))
+                (year (match-string 3 file))
+                (album (match-string 4 file))
+                (track (match-string 5 file))
+                (title (match-string 6 file)))
+            (seq-doseq (child (widget-get widget :children))
+              (seq-let (tag-widget value-widget) (widget-get child :children)
+                (let ((tag (widget-value tag-widget))
+                      (value (widget-value value-widget)))
+                  (pcase tag
+                    ((and "genre" (guard (and (string-empty-p value) genre)))
+                     (widget-value-set value-widget genre))
+                    ((and "artist" (guard artist))
+                     (widget-value-set value-widget artist))
+                    ((and "year" (guard year))
+                     (widget-value-set value-widget (string-to-number year)))
+                    ((and "album" (guard album))
+                     (widget-value-set value-widget album))
+                    ((and "track-number" (guard track))
+                     (widget-value-set value-widget (string-to-number track)))
+                    ("track-title"
+                     (widget-value-set value-widget title))))))))))))
 
 ;;;; Functions
 
