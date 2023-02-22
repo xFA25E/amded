@@ -2,13 +2,18 @@
   description = "Emacs package";
 
   inputs = {
+    amded.flake = false;
+    amded.url = "github:ft/amded";
+
     eldev.flake = false;
     eldev.url = "github:doublep/eldev/1.3.1";
+
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
     self,
+    amded,
     eldev,
     emacs-overlay,
     nixpkgs,
@@ -69,20 +74,13 @@
           stdenv,
           taglib,
           zlib,
-        }: let
-          src = fetchFromGitHub {
-            owner = "ft";
-            repo = "amded";
-            rev = "65609e6ed7b4045c4637abcb123f6edc5d34027b";
-            hash = "sha256-7R98XfrraAzqdnPlkewfw5FGNFQHasa5OwJIqLFvvW4=";
-          };
-          version = builtins.head (builtins.match
-            ".*\n#define VERSION \"([.0-9]+)\".*"
-            (builtins.readFile "${src}/amded.h"));
-        in
+        }:
           stdenv.mkDerivation {
-            inherit src version;
             pname = "amded";
+            version = builtins.head (builtins.match
+              ".*\n#define VERSION \"([.0-9]+)\".*"
+              (builtins.readFile "${amded}/amded.h"));
+            src = amded;
             nativeBuildInputs = [pkg-config];
             buildInputs = [jsoncpp libb64 taglib zlib];
             makeFlags = ["PREFIX=$(out)"];
@@ -115,9 +113,14 @@
       '';
     };
 
-    packages.${system} = {
-      ${name} = (pkgs.emacsPackagesFor pkgs.emacs).${name};
-    };
+    packages.${system} =
+      emacs-overlay.inputs.flake-utils.lib.flattenTree
+      {
+        inherit (pkgs) amded;
+        emacsPackages = pkgs.lib.recurseIntoAttrs {
+          ${name} = (pkgs.emacsPackagesFor pkgs.emacs).${name};
+        };
+      };
 
     checks.${system} =
       self.packages.${system}

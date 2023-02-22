@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "amded": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1672692393,
+        "narHash": "sha256-7R98XfrraAzqdnPlkewfw5FGNFQHasa5OwJIqLFvvW4=",
+        "owner": "ft",
+        "repo": "amded",
+        "rev": "65609e6ed7b4045c4637abcb123f6edc5d34027b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ft",
+        "repo": "amded",
+        "type": "github"
+      }
+    },
     "eldev": {
       "flake": false,
       "locked": {
@@ -66,6 +82,7 @@
     },
     "root": {
       "inputs": {
+        "amded": "amded",
         "eldev": "eldev",
         "emacs-overlay": "emacs-overlay",
         "nixpkgs": "nixpkgs"

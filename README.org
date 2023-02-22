@@ -48,7 +48,7 @@ nixpkgs overlays.
   outputs = { self, amded, nixpkgs }: let
     pkgs = import nixpkgs {
       system = "your-system";
-      overlays = [ amded.overlays.default ];
+      overlays = [ amded.overlays.default amded.overlays.amded ];
     };
   in {
     # YOUR OUTPUTS
