@@ -61,7 +61,12 @@
 
 ;; + `amded-set-incremental-number' takes a numeric tag
 ;;   (`amded-editable-numeric-tags') and a number to start from.  It sets the
-;;   tag value in every widget incrementing it.
+;;   tag value in every widget incrementing it.  Used for setting track numbers.
+
+;; + `amded-set-from-template' to set tags from `amded-template-regexp'.  Tag
+;;   values are taken from numeric groups of regexp.  You can customize it, of
+;;   course.  See its docstring.  If you need to support other tags in template,
+;;   you can customize `amded-template-regexp-groups'.
 
 ;;;; Credits
 
@@ -127,6 +132,19 @@ return a list of absolute filenames."
   :type '(alist (cons symbol function))
   :group 'amded)
 
+(defcustom amded-template-regexp-groups
+  '(("genre" . 1)
+    ("artist" . 2)
+    ("year" . 3)
+    ("album" . 4)
+    ("track-number" . 5)
+    ("track-title" . 6))
+  "Template regexp groups associated with tags.
+See `amded-template-regexp'."
+  :type '(alist :key-type (string :tag "Tag")
+                :value-type (integer :tag "Regexp group"))
+  :group 'amded)
+
 (defcustom amded-template-regexp
   (rx-let ((sep (or " - " "/"))
            (ext (seq "." (+ (not ".")) eos))
@@ -160,16 +178,9 @@ return a list of absolute filenames."
         (tag-text 6) ext))
   "A regexp used it `amded-set-from-template'.
 It is matched against full file name and various parts are taken
-from explicit groups:
+from explicit regexp groups from `amded-template-regexp-groups'.
 
-1 - Genre
-2 - Artist
-3 - Year
-4 - Album
-5 - Track Number
-6 - Track Title
-
-See `amded-template-regexp' definition for an example."
+See definition for an example."
   :type 'regexp
   :group 'amded)
 
@@ -183,6 +194,7 @@ See `amded-template-regexp' definition for an example."
 (easy-mmode-defmap amded-mode-map
   '(("s" . amded-set)
     ("n" . amded-set-incremental-number)
+    ("T" . amded-set-from-template)
     ("\C-x\C-s" . amded-save)
     ("q" . quit-window))
   "Amded mode map."
@@ -287,29 +299,14 @@ START should be a number from which to begin counting."
       (let ((file (widget-get widget :file)))
         (save-match-data
           (string-match amded-template-regexp file)
-          (let ((genre (match-string 1 file))
-                (artist (match-string 2 file))
-                (year (match-string 3 file))
-                (album (match-string 4 file))
-                (track (match-string 5 file))
-                (title (match-string 6 file)))
-            (seq-doseq (child (widget-get widget :children))
-              (seq-let (tag-widget value-widget) (widget-get child :children)
-                (let ((tag (widget-value tag-widget))
-                      (value (widget-value value-widget)))
-                  (pcase tag
-                    ((and "genre" (guard (and (string-empty-p value) genre)))
-                     (widget-value-set value-widget genre))
-                    ((and "artist" (guard artist))
-                     (widget-value-set value-widget artist))
-                    ((and "year" (guard year))
-                     (widget-value-set value-widget (string-to-number year)))
-                    ((and "album" (guard album))
-                     (widget-value-set value-widget album))
-                    ((and "track-number" (guard track))
-                     (widget-value-set value-widget (string-to-number track)))
-                    ("track-title"
-                     (widget-value-set value-widget title))))))))))))
+          (seq-doseq (child (widget-get widget :children))
+            (seq-let (tag-widget value-widget) (widget-get child :children)
+              (let ((tag (widget-value tag-widget)))
+                (when-let ((group (assoc tag amded-template-regexp-groups))
+                           (value (match-string (cdr group) file)))
+                  (widget-value-set value-widget (if (amded-numeric-tag-p tag)
+                                                     (string-to-number value)
+                                                   value)))))))))))
 
 ;;;; Functions
 
