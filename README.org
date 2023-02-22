@@ -1,5 +1,7 @@
 #+TITLE: amded
 
+[[https://github.com/xFA25E/amded/actions/workflows/test.yml/badge.svg]]
+
 Interface to music tagging application [[https://github.com/ft/amded][amded]]
 
 This package allows music files to be easily tagged in a convenient widget
