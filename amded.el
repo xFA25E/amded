@@ -59,9 +59,9 @@
 
 ;; + `amded-set' sets the same value for a tag in every widget.
 
-;; + `amded-numeric-set' takes a numeric tag (`amded-editable-numeric-tags') and
-;;   a number to start from.  It sets the tag value in every widget incrementing
-;;   it.
+;; + `amded-set-incremental-number' takes a numeric tag
+;;   (`amded-editable-numeric-tags') and a number to start from.  It sets the
+;;   tag value in every widget incrementing it.
 
 ;;;; Credits
 
@@ -182,7 +182,7 @@ See `amded-template-regexp' definition for an example."
 
 (easy-mmode-defmap amded-mode-map
   '(("s" . amded-set)
-    ("n" . amded-numeric-set)
+    ("n" . amded-set-incremental-number)
     ("\C-x\C-s" . amded-save)
     ("q" . quit-window))
   "Amded mode map."
@@ -260,7 +260,7 @@ If PREDICATE is omitted or nil, save all."
           (when (string= tag (widget-value tag-widget))
             (widget-value-set value-widget value)))))))
 
-(defun amded-numeric-set (tag start)
+(defun amded-set-incremental-number (tag start)
   "Set numbers incrementally to TAG in widgets.
 START should be a number from which to begin counting."
   (interactive
