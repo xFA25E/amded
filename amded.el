@@ -211,6 +211,7 @@ See definition for an example."
 ;;;###autoload
 (defun amded (&rest files)
   "Edit audio FILES tags."
+  (declare (completion amded--completion-predicate))
   (interactive (amded-files))
   (let* ((files-tags (apply #'amded-read files))
          (files (map-keys files-tags)))
@@ -410,6 +411,12 @@ Widget definition depends on `amded-editable-tags' and
       (save-excursion
         (widget-backward 3)
         (widget-field-at (point)))))
+
+(defun amded--completion-predicate (_fn buffer)
+  "Check `amded' command can run in the current BUFFER."
+  (apply #'provided-mode-derived-p
+         (buffer-local-value 'major-mode buffer)
+         (mapcar #'car amded-files-functions)))
 
 ;;;; Footer
 
