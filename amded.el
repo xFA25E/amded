@@ -211,7 +211,6 @@ See definition for an example."
 ;;;###autoload
 (defun amded (&rest files)
   "Edit audio FILES tags."
-  (declare (completion amded--completion-predicate))
   (interactive (amded-files))
   (let* ((files-tags (apply #'amded-read files))
          (files (map-keys files-tags)))
@@ -419,6 +418,10 @@ Widget definition depends on `amded-editable-tags' and
          (mapcar #'car amded-files-functions)))
 
 ;;;; Footer
+
+;; Put completion predicate only when the package is loaded, since amded command
+;; is autoloaded and requires more dependencies.
+(function-put 'amded 'completion-predicate #'amded--completion-predicate)
 
 (amded--define-widget)
 
